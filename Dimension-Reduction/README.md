@@ -75,7 +75,3 @@ The isolation forest algorithm separates points through recursive partitioning:
 - **Data Preprocessing**: Removing outliers before downstream analysis
 - **Quality Control**: Detecting anomalies in manufacturing or process data
 - **Security**: Identifying suspicious activities in network or transaction data
-
----
-
-*This project demonstrates mastery of unsupervised learning algorithms and statistical computing, with particular focus on understanding the theoretical foundations of isolation forest methods.*
