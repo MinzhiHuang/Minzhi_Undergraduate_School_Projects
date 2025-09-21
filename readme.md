@@ -1,5 +1,3 @@
-# 🔍 Minzhi's Data Science & Computing Portfolio
-
 Welcome! I'm Minzhi, a data and AI enthusiast with a strong foundation in statistical computing, machine learning, and algorithmic problem-solving. This repository showcases some of my undergraduate projects spanning data science, statistical analysis, machine learning, and computer science fundamentals. 
 
 💼 **Academic Focus**: Statistical Computing, Machine Learning, Data Structures & Algorithms  
@@ -137,7 +135,8 @@ Implemented fundamental data structures and algorithms with focus on efficiency 
 
 ## 📈 Impact & Achievements
 
-- **#1 Ranking** in STAT 440 class for missing data imputation accuracy (28 students) and CMPT 353 Data Science class with COVID-19 sentiment analysis project.
+- **#1 Ranking** in STAT 440 class for missing data imputation accuracy (20+ groups)
+- **#1 Ranking** in CMPT 353 class for COVID-19 sentiment analysis project.
 
 ---
 
@@ -154,5 +153,6 @@ Implemented fundamental data structures and algorithms with focus on efficiency 
 ---
 
 This portfolio represents my journey in data science and computational methods, showcasing both technical skills and analytical thinking.
+
 
 
