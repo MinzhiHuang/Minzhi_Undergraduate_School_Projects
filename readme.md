@@ -1,4 +1,4 @@
-🔍 Welcome! I'm Minzhi, a data and AI enthusiast with a strong foundation in statistical computing, machine learning, and algorithmic problem-solving. This repository showcases some of my undergraduate projects spanning data science, statistical analysis, machine learning, and computer science fundamentals. 
+🍀 Welcome! I'm Minzhi, a data and AI enthusiast with a strong foundation in statistical computing, machine learning, and algorithmic problem-solving. This repository showcases some of my undergraduate projects spanning data science, statistical analysis, machine learning, and computer science fundamentals. 
 
 💼 **Academic Focus**: Statistical Computing, Machine Learning, Data Structures & Algorithms  
 🧠 **Core Skills**: Python, R, C++, Statistical Modeling, Data Visualization  
@@ -153,6 +153,7 @@ Implemented fundamental data structures and algorithms with focus on efficiency 
 ---
 
 This portfolio represents my journey in data science and computational methods, showcasing both technical skills and analytical thinking.
+
 
 
 
