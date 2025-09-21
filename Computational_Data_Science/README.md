@@ -63,7 +63,3 @@ This project analyzes how people's emotions changed on Twitter during the COVID-
 - Integration of additional NLP techniques (BERT, transformer models)
 - Real-time sentiment monitoring system
 - Cross-platform sentiment analysis (beyond Twitter)
-
----
-
-*This project demonstrates proficiency in NLP, time series analysis, and machine learning applied to real-world social media data during a critical global event.*
