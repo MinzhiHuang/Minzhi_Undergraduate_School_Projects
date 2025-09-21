@@ -1,0 +1,358 @@
+---
+title: "STAT 341/641 Final Project"
+author: "Your Name Here"
+date: "Enter the Date Here"
+output: html_document
+---
+* * *
+For the final exam you will fill in missing pieces of the code in the following blocks. Suppose we observe $N$ data points, $\left\{\mathbf{x}_i\right\}_{i=1}^N$, in six dimensions so that $\mathbf{x}_i=(x_{i1},x_{i2},x_{i3},x_{i4},x_{i5},x_{i6})$. The isolation forest separates points by repeating the steps in the following algorithm.
+
+1. Randomly choose one of the variables in the dataset, say $x_{i1}$;
+2. Randomly choose a number $c$ in the interval $(\min_i(x_{i1}),\max_i(x_{i1})$.
+3. Divide the data into groups depending on whether $x_{i1} >c$ or $x_{i1}\leq c$.
+
+We are going to use this part of the isolation forest algorithm to create a dimension reduction technique.  For each question you will either change a question mark, ?, to code, supply your own code, or provide a short answer.
+
+*The final project is worth 20 points and due on April 25th.  You may consult other students in the class to finish the final, but you must submit your own project.  You may not ask for help from me or the teaching assistants.*
+
+**Code Block #1:** 
+This code block simulates some data we'll use throughout the project.  Then it loads some functions from midterm two that we need.
+
+In this block, I have replaced parts of the code with ?.  Make the necessary changes to the code.  This block contains Q1 - Q3.
+
+```{r}
+#### make high dimensional data with known cluster labels
+library(mvtnorm)
+set.seed(641)
+
+#### Q1: Sample 25 observations from a normal distribution with mean vector equal to one in every dimension. (1 point)
+c1 <- rmvnorm(25, mean = c(rep(1,6)), sigma = 7*diag(6))
+
+#### Q2: Sample 35 observations from a normal distribution with the given mean vector equal and a covariance matrix with 3s on the diagonal and .1 in the off diagonals if i and j are both even or if i and j are both odd.  Let the other off diagonals be -.1. (1 point)
+mydiag_matrix <- 3*(diag(6))
+u_inds <- upper.tri(mydiag_matrix)
+l_inds <- lower.tri(mydiag_matrix)
+mydiag_matrix[u_inds] <- c(-0.1,0.1,-0.1,-0.1,0.1,-0.1,0.1,-0.1,0.1,-0.1,
+                           -0.1,0.1,-0.1,0.1,-0.1)
+
+mydiag_matrix[l_inds] <- t(mydiag_matrix)[l_inds]
+
+#### check symmetry (this should be true)
+isSymmetric(mydiag_matrix)
+c2 <- rmvnorm(35, mean = c(10,1,-5,0,0.25,-.5), sigma = mydiag_matrix)
+c3 <- rmvnorm(18, mean = c(-2,-2,-4,-1,8,-6), sigma = 6*diag(6))
+c4 <- matrix(runif(60,1,5),ncol =6)
+
+#### Q3: Sample 5 points in six-dimensional space from the cauchy distribution with location parameter zero and scale equal to 4. (1 point)
+c5 <- matrix(rcauchy(n = 30, location = 0 , scale = 4),ncol =6)
+
+mypts <- rbind(c1,c2,c3,c4,c5)
+mypts <- mypts + matrix(rnorm(n = (nrow(mypts)*6), sd = 2 ),ncol = 6)
+
+out_dat <- cbind(cluster = c(rep(1,nrow(c1)),rep(2,nrow(c2)),rep(3,nrow(c3)),rep(4,nrow(c4)),rep(5,nrow(c5))),
+                 mypts)
+
+library(colorspace)
+## plot dimensions (1,2), (2,3), (1,4), (3,5), (4,5), (5,6)
+xaxis <- c(1,2,1,3,4,5) + 1
+yaxis <- c(2,3,4,5,5,6) +1
+par(mfrow=c(3,2))
+
+for (i in c(1:6)){
+  plot(out_dat[,c(xaxis[i],yaxis[i])],typ = "n",xlab = paste("Column",xaxis[i] -1,sep = ""),
+       ylab = paste("Column",yaxis[i] -1,sep = ""))
+  points(out_dat[,c(xaxis[i],yaxis[i])],col = rainbow_hcl(5)[out_dat[,1]],pch = 20)
+}
+
+## our functions from midterm 2
+getClusters <- function(mydata, J,N,K){
+  N <- nrow(mydata)
+  K <- ncol(mydata)
+  cluster_matrix <- matrix(1,N,N)
+  for (j in c(1:J)){
+    mydim <- sample(1:K,1)
+    c <- runif(1,min(mydata[,mydim]),max(mydata[,mydim]))
+    tmp <- (mydata[,mydim] < c) %*% t(mydata[,mydim] < c) + (mydata[,mydim] >= c) %*% t(mydata[,mydim] >= c)
+    cluster_matrix <- cluster_matrix * tmp
+    }
+  return(cluster_matrix)
+  }
+
+getAvgMatrix <- function(X,R,ncuts){
+  n <- nrow(X)
+  k <- ncol(X)
+  avg_cluster_matrix <- matrix(0,n,n)
+  for (r in c(1:R)){
+    obj <- getClusters(X,J = ncuts,N=n,K=k)
+    avg_cluster_matrix <- obj/R + avg_cluster_matrix  
+    }
+  return(avg_cluster_matrix)
+}
+```
+
+**Code Block #2:** 
+In this code chunk, we will get the pairwise neighbor probabilities and run multi-dimensional scaling.
+
+In this block, I have replaced parts of the code with ?.  Make the necessary changes to the code.  This block contains Q4 and Q5.
+```{r}
+set.seed(641)
+#### Q4: Run the getAvgMatrix function with R = 2500 and ncuts = 5 (1 point).  Recall that cell i,j of this symmetric matrix contains the probability that i and j are in the same neighborhood.
+
+avgcluster <- getAvgMatrix(X=mypts, R = 2500, ncuts =5)
+
+
+#### Q5: Run MDS using the SMACOF package on the dissimilarity matrix containing the probability that points i and j are not in the same neighborhood. (1 point)
+
+library(smacof)
+
+res_mds <- smacofSym(sim2diss(avgcluster,method=1),ndim =2)
+
+### plot the results
+plot(res_mds$conf,typ="n",xlab="Dimension One",ylab="Dimension Two")
+points(res_mds$conf, col = rainbow_hcl(5)[out_dat[,1]],pch = 19)
+```
+
+**Code Block #3:** 
+In the $t$-SNE method for visualizing high-dimensional data, probabilities $p_{ij}$ are computed using the observed data.  Then we choose a low-dimensional embedding $\mathbf{z}_1,\ldots,\mathbf{z}_N$ to minimize
+$$\sum_{i=1}^N\sum_{j \neq i} p_{ij} \log\frac{p_{ij}}{q_{ij}}$$
+where
+$$q_{ij} = \frac{\left(1+ d(\mathbf{z}_i,\mathbf{z}_j)^2\right)^{-1}}{\sum_{k\neq i}\left(1+ d(\mathbf{z}_i,\mathbf{z}_k)^2\right)^{-1}}.$$
+In our version of the algorithm, we will choose a low-dimensional embedding $\mathbf{z}_1,\ldots,\mathbf{z}_N$ to minimize the Hellinger distance between the $p_{ij}$ and $q_{ij}$ where $p_{ij}$ are derived from the pairwise probabilities from the isolation forest cuts.  The squared Hellinger distance (times a factor of two) is given by
+$$2*H^2(P,Q) = \sum_{i=1}^N\sum_{j\neq i}\left(\sqrt{p_{ij}} - \sqrt{q_{ij}}\right)^2.$$
+In this block, I have written code to preform optimization using R's optim function.  Warning:  the call to optim requies a few minutes to finish. I have replaced parts of the code with a question mark.  Make the necessary changes to the code.  This block contains Q6 - Q8.
+
+```{r}
+#### Adjust the probability matrix so it is a probability distribution over all neighborhood assignments
+diag(avgcluster) <- 0
+myp <- avgcluster/rowSums(avgcluster)
+
+myp <- (myp + t(myp))/(2*nrow(out_dat))
+
+#### Write a function to compute the hellinger distance.
+#### Q6:  Set the p argument default to be the myp object. (1 point)
+
+hellinger <- function(mydat,p = myp){
+   mydat <- matrix(mydat,ncol=2)
+  return(sum((sqrt(getQ(mydat)) - sqrt(myp))^2))
+}
+
+#### Write a function to compute the Q matrix given a two-dimensional representation of the data
+getQ <- function(Z){
+  zz <- as.matrix(dist(Z))
+  num <- 1/(1 + zz^2)
+  diag(num) <- 0
+  mat <- num/rowSums(num)
+  return((mat + t(mat))/(2*nrow(Z)))
+}
+
+#### Q7:  Use the Hellinger distance function to compute the hellinger distance between the two-dimensional representation found by MDS and myp. (1 point)
+
+hellinger(res_mds$conf)
+
+#### Use the optim function to choose coordinates to minimize the difference between Q and P in the hellinger distance.  Here we use the MDS dimensions as a starting value
+
+myres <- optim(c(res_mds$conf),fn = hellinger, method = "BFGS",control = list(maxit = 450))
+
+
+#### Compute the hellinger distance and plot the optimized dimensions.
+hellinger(myres$par)
+plot(matrix(myres$par,ncol = 2),typ="n",xlab="Dimension One",ylab="Dimension Two")
+points(matrix(myres$par,ncol = 2), col = rainbow_hcl(5)[out_dat[,1]],pch = 20)
+
+#### Q8:  Compute the Mahalanobois distances of the points in cluster five in the MDS dimensions and the optimized dimensions.  By which method is the average Mahalanobis distance of cluster five larger? (2 points)
+in_c5 <- which(out_dat[,1] == 5)
+mds_data <- res_mds$conf
+mds_mdist <- mahalanobis(mds_data, colMeans(mds_data), cov(mds_data))[in_c5]
+avg_mds_mdist <-mean(mds_mdist)
+
+optimized_data <- matrix(myres$par,ncol = 2)
+optimized_mdist <- mahalanobis(optimized_data, colMeans(optimized_data), cov(optimized_data))[in_c5]
+avg_optimized_mdist <-mean(optimized_mdist)
+print(avg_optimized_mdist >  avg_mds_mdist)
+```
+
+**Code Block #4:**  
+Recall that the Isomap algorithm proceeds by finding the $k$-nearest neighbors network, computing geodesic distances between all points, and running MDS on the resulting distance matrix.  In this block, we will find the nearest neighbors network for our data and run some similar to Isomap.  Rather than computing the geodesic distance between points $i$ and $j$, we will compute the probability that there exists a link from $i$ to $j$.  For example, suppose the shortest path between points $i$ and $m$ goes through points $j$, $k$, and $l$.  Then the probability of a link between $i$ and $m$ is 
+$$ p(i \leftrightarrow m) = p(i \text{ is a neighbor of } j)p(j \text{ is a neighbor of } k)p(k \text{ is a neighbor of } l)p(l \text{ is a neighbor of } m).$$
+
+In this block, I have replaced parts of the code with ?.  Make the necessary changes to the code.  For Q11 and Q12, you will need to supply your own code. This block contains Q9 and Q12.
+```{r}
+#### Here we try an alternative way to get the a lower dimensional representation.
+#### Let's find the k nearest neighbors from the probability distribution in avgcluster
+
+getNNNetwork <- function(k,pmat = avgcluster){
+  snet <- matrix(0,nrow = nrow(pmat),ncol = nrow(pmat))
+  order_res <- apply(pmat,1,function(x){
+    tmp <- order(x,decreasing = T)[1:k]
+  })
+  for (i in c(1:nrow(pmat))){
+    snet[i,order_res[,i]] <- 1
+  }
+  return(snet)
+}
+
+
+#### Q9:  Run getNNNetwork with k = 5 (1 point).
+
+mynet <- getNNNetwork(5)
+
+
+#### Make network plot
+library(igraph)
+#### Make an undirected graph
+gnet_undirected <- graph_from_adjacency_matrix(mynet*avgcluster,mode = "undirected",weighted = T)
+
+#### Q10:  Add a title to the following plot saying "Neighborhood Network". (1 point)
+
+plot(gnet_undirected,vertex.size = 3, edge.width = .75,edge.arrow.size = .25, edge.arrow.width = .5,vertex.label = NA, vertex.color = rainbow_hcl(5)[out_dat[,1]], main="Neighborhood Network")
+
+#### get shortest paths
+nr <- nrow(avgcluster)
+prob_net <- matrix(0,nr,nr)
+for (i in c(1:nr)){
+  all_net <- shortest_paths(gnet_undirected,from = i,to = 1:93)
+  for (j in c(1:nr)){
+    if( i == j){
+      prob_net[i,j] <- 1
+    }
+    else{
+      ll <- all_net$vpath[[j]]
+      myprod <- 1
+      for (k in c(1:(length(ll)-1))){
+        myprod <- myprod * avgcluster[ll[k],ll[(k+1)]]
+        }
+      prob_net[i,j] <-myprod
+    }
+  }
+}
+
+
+library(pheatmap)
+#### Q11:  Use the pretty heap mat package to plot the value of the first 20 rows and columns of prob_net (1 point).  See lecture notes. 
+library(viridisLite)
+
+mypal <- viridis(1000,alpha = .5)
+
+pheatmap(prob_net[c(1:20),c(1:20)],color=mypal,cluster_rows = F,cluster_cols = F,fontsize_number = 15,cex=0.75,cex.main=1,main="Probability")
+
+
+library(smacof)
+
+
+#### Q12:  Use the SMACOF package to preform MDS on dissimilarity matrix derived from prob_net (this is like Q5) setting ndim = 1,2,3,4,5,6.  Plot the stress of the fit associated with the different choices of ndim. (2 points)
+a<-smacofSym(sim2diss(prob_net,method = 1),ndim =1)
+b<-smacofSym(sim2diss(prob_net,method = 1),ndim =2)
+c<-smacofSym(sim2diss(prob_net,method = 1),ndim =3)
+d<-smacofSym(sim2diss(prob_net,method = 1),ndim =4)
+e<-smacofSym(sim2diss(prob_net,method = 1),ndim =5)
+f<-smacofSym(sim2diss(prob_net,method = 1),ndim =6)
+plot(rbind(a$stress,b$stress,c$stress,d$stress,e$stress,f$stress),main="stress of the fit associated with the different choices of ndim")
+
+barplot(cbind(a$stress,b$stress,c$stress,d$stress,e$stress,f$stress),main="stress of the fit associated with the different choices of ndim")
+```
+
+**Code Block #5:**  Challenge:  For the three methods considered in the project (MDS, Optimized MDS, and Network MDS), compute the sum of squared residuals by group.  Your result should be a table with three columns and five rows.  You can use the formula
+
+$$\text{SSR}_g = \sum_{i: \mathbf{x}_i \in C_g}d(\mathbf{z}_i,\bar{\mathbf{c}}_g)^2$$
+where $g = \in \left\{1,2,3,4,5\right\}$ is the group number, $C_g$ is the set of points in group $g$, and $d(\mathbf{z}_i,\bar{\mathbf{c}}_g)$ is the Euclidean distance between observation $i$'s lower dimensional embedding $\mathbf{z}_i$ and $\bar{\mathbf{c}}_g$, the vector of means for group $g$.
+
+Next, let's define a new way to compute the local outlier factor.  Let $N_k(\mathbf{x}_i)$ be the indices of the $k$ nearest neighbors for point $\mathbf{x}_i$.  Define our measure to be
+$$\text{LOF}(\mathbf{x}_i) = \frac{1}{k} * \frac{ \sum_{j : j\in N_k(\mathbf{x}_i) }  d(\mathbf{x}_i,\mathbf{x}_j)}{\sum_{j : j\in \mathcal{N}_k(\mathbf{x}_i)}\sum_{l:l\in N_k(\mathbf{x}_j)}d(\mathbf{x}_j,\mathbf{x}_l)}$$ where $d(\mathbf{x}_i,\mathbf{x}_j)$ is the Euclidean distance between $\mathbf{x}_i$ and $\mathbf{x}_j$.
+ 
+Find the outlier factor of the lower dimensional embeddings for points in cluster 5 using $k=5$ for each of the three methods.  Compare these to the outlier factors for the points in cluster using the original data in six dimensions.
+
+For Q13 and Q14, you will need to supply your own code. Q15 requires 2 - 3 sentences to explain your answer. This block contains Q13 - Q15.
+
+```{r}
+#### Q13: Compute the SSR for the five clusters under the three different methods.  Print out a 5 x 3 table with the results. (2 points)  
+euclidistance<-function(x,x0){
+return(sum((x-x0)^2))
+}
+out_dat
+
+SSR<-function(data22){
+centers<-matrix(NA,1,ncol(data22))
+centers<-apply(data22,2,mean)
+SSR=sum(apply(data22,1,euclidistance,centers))
+return(SSR)
+}
+
+###group1:
+MDS1<-res_mds$conf[c(1:25),]
+Optimized1<-optimized_data[c(1:25),]
+Network1<-b$conf[c(1:25),]
+first<-rbind(SSR(MDS1),SSR(Optimized1),SSR(Network1))
+first<-t(first)
+###group2:
+Second<-rbind(SSR(res_mds$conf[c(26:60),]),SSR(optimized_data[c(26:60),]),SSR(b$conf[c(26:60),]))
+Second<-t(Second)
+###group3:
+Thrid<-rbind(SSR(res_mds$conf[c(61:78),]),SSR(optimized_data[c(61:78),]),SSR(b$conf[c(61:78),]))
+Thrid<-t(Thrid)
+###group4:
+Fourth<-rbind(SSR(res_mds$conf[c(79:88),]),SSR(optimized_data[c(79:88),]),SSR(b$conf[c(79:88),]))
+Fourth<-t(Fourth)
+###group5:
+Fifth<-rbind(SSR(res_mds$conf[c(89:93),]),SSR(optimized_data[c(89:93),]),SSR(b$conf[c(89:93),]))
+Fifth<-t(Fifth)
+##output:
+table1<-as.data.frame(rbind(first,Second,Thrid,Fourth,Fifth))
+names(table1)<-c("MDS data","optimized_data","netdata")
+table1
+
+#### Q14: Write a function (or functions) to compute the local outlier factor using the definition given in the above text.  Compute the outlier factors for each of the points in cluster five for each of the three dimension reduction methods.  Then do the same for the original data.  Print out a 5 x 4 table with the results. (3 points)
+
+####nn.dist an n x k matrix for the nearest neighbor Euclidean distances. nn.index an n x k matrix for the nearest neighbor indice.
+library(FNN)
+
+myLOF<-function(bbindex,bbdist)
+{
+#####numerator
+matrixnumberator<-matrix(NA,1,5)
+indexxixj<-bbindex[c(89:93),]
+Dxixj<-bbdist[c(89:93),]
+for(k in 1:5)
+{
+matrixnumberator[1,k]=sum(Dxixj[k,])
+}
+#####denominator
+newdistance<-matrix(NA,1,5) ## 5 neighbor each have 5 distances
+for(i in 1:5)
+{
+newdistance[,i]<-sum(bbdist[indexxixj[i,],])
+denominator<-newdistance
+}
+myLOF<-1/5*(matrixnumberator/denominator)
+return(myLOF)
+}
+
+bb<-get.knn(res_mds$conf,k=5)
+aa<-myLOF(bb$nn.index,bb$nn.dist)
+aa<-t(aa)
+cc<-get.knn(optimized_data,k=5)
+dd<-myLOF(cc$nn.index,cc$nn.dist)
+dd<-t(dd)
+ee<-get.knn(b$conf,k=5)
+ff<-myLOF(ee$nn.index,ee$nn.dist)
+ff<-t(ff)
+gg<-get.knn(mypts,k=5)
+hh<-myLOF(gg$nn.index,gg$nn.dist)
+hh<-t(hh)
+table2<-as.data.frame(cbind(aa,dd,ff,hh))
+names(table2)<-c("MDS data","optimized_data","netdata","original data")
+table2
+
+#### Q15: Which dimension reduction method would you choose to study outliers in the lower dimensional embedding?  (1 point)
+
+#### Base on the LOF result of Q14 and the mean of LOF
+#### If the study purpose is to preserve the outlier to study in the lower dimensional embedding, I #### will choose the optimized dimensional embedding method,since it h
+#### as the most similar LOF score with the original datat.Also it has the biggest SSR
+##in Q14.( Means it preserve the outlier in the original dataset the best)
+#### If the study purpose is to reduce outlier in the lower dimensional embedding,
+##I will choose network dimension reduction method.(since it has the smallest LOF sc
+##ore).Also it has the smallest SSR in Q14.
+mean(table2[,1])
+mean(table2[,2])
+mean(table2[,3])
+mean(table2[,4])
+```
