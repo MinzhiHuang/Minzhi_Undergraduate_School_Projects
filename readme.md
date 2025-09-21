@@ -6,8 +6,7 @@ Welcome! I'm Minzhi, a data and AI enthusiast with a strong foundation in statis
 🧠 **Core Skills**: Python, R, C++, Statistical Modeling, Data Visualization  
 ✨ **End-to-End Analysis**: From data preprocessing and feature engineering to insight generation  
 📈 **Visualization & Communication**: Clear storytelling through reports and visualizations  
-📬 **Let's Connect**  
-If you're a recruiter, teammate, or fellow data enthusiast, feel free to explore these projects and reach out if you'd like to collaborate or chat about any of these ideas!
+📬 **Let's Connect**: If you're a recruiter, teammate, or fellow data enthusiast, feel free to explore these projects and reach out if you'd like to collaborate or chat about any of these ideas!
 
 I'm passionate about solving real-world problems through thoughtful analysis and robust computational methods.
 
@@ -155,4 +154,5 @@ Implemented fundamental data structures and algorithms with focus on efficiency 
 ---
 
 This portfolio represents my journey in data science and computational methods, showcasing both technical skills and analytical thinking.
+
 
