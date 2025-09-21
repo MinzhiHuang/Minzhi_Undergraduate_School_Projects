@@ -11,7 +11,7 @@ This project focuses on developing sophisticated missing data imputation strateg
 
 ## 🏆 Key Achievement
 
-**Class Ranking**: Achieved #1 position out of 28 students for highest imputation accuracy, demonstrating mastery of statistical imputation techniques.
+**Class Ranking**: Achieved #1 position out of 20 groups for highest imputation accuracy, demonstrating mastery of statistical imputation techniques.
 
 ## 📊 Dataset Description
 
@@ -91,5 +91,3 @@ The dataset contains internet speed test results from locations across Canada:
 - **Research Value**: Contributed to understanding of missing data patterns in geographic data
 
 ---
-
-*This project demonstrates advanced statistical computing skills and the ability to achieve top performance in competitive academic settings through rigorous methodology and domain expertise.*
